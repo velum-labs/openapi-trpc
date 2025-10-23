@@ -4,5 +4,6 @@
     "types": ["heft-jest", "node"],
     "target": "ES2020",
     "lib": ["ES2020"]
-  }
+  },
+  "exclude": ["**/*.vitest.test.ts", "**/*.vitest.spec.ts"]
 }

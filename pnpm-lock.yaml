@@ -32,7 +32,7 @@ importers:
         version: 0.19.17(@rushstack/heft@1.1.2(@types/node@18.19.103))(@types/node@18.19.103)(jest-environment-node@29.7.0)
       '@trpc/server':
         specifier: 11.4.3
-        version: 11.4.3(typescript@5.6.3)
+        version: 11.4.3(typescript@5.0.4)
       '@types/heft-jest':
         specifier: 1.0.3
         version: 1.0.3
@@ -52,8 +52,8 @@ importers:
         specifier: ^4.15.5
         version: 4.19.1
       typescript:
-        specifier: 5.6.3
-        version: 5.6.3
+        specifier: ~5.0.0
+        version: 5.0.4
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@18.19.103)(jsdom@20.0.3)(sass-embedded@1.62.0)(sass@1.49.11)(terser@5.39.2)
@@ -4536,11 +4536,6 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@5.6.3:
-    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
@@ -6075,9 +6070,9 @@ snapshots:
 
   '@tootallnate/once@2.0.0': {}
 
-  '@trpc/server@11.4.3(typescript@5.6.3)':
+  '@trpc/server@11.4.3(typescript@5.0.4)':
     dependencies:
-      typescript: 5.6.3
+      typescript: 5.0.4
 
   '@trysound/sax@0.2.0': {}
 
@@ -10330,8 +10325,6 @@ snapshots:
   typescript@5.0.4: {}
 
   typescript@5.3.3: {}
-
-  typescript@5.6.3: {}
 
   unbox-primitive@1.1.0:
     dependencies:

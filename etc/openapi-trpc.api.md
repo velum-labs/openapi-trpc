@@ -4,15 +4,15 @@
 
 ```ts
 
+import type { AnyRouter } from '@trpc/server';
 import { OpenAPIV3 } from 'openapi-types';
-import { RootConfig } from '@trpc/server';
-import { Router } from '@trpc/server';
-import { RouterDef } from '@trpc/server';
+import type { TRPCRootConfig } from '@trpc/server';
+import type { TRPCRouterDef } from '@trpc/server';
 
 // Warning: (ae-forgotten-export) The symbol "MetaOf" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(inRouter: R, options?: GenerateOpenAPIDocumentOptions<MetaOf<R>>): OpenAPIV3.Document<{}>;
+export function generateOpenAPIDocumentFromTRPCRouter<R extends AnyRouter>(inRouter: R, options?: GenerateOpenAPIDocumentOptions<MetaOf<R>>): OpenAPIV3.Document<{}>;
 
 // @public (undocumented)
 export interface GenerateOpenAPIDocumentOptions<M extends OperationMeta> {
