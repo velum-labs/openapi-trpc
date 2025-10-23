@@ -1,25 +1,21 @@
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { DummyProcedure, DummyRouter } from './dummyRouter'
-import {
-  z,
-  AnyZodObject,
-  ZodType,
-  ZodFirstPartyTypeKind,
-  ZodArray,
-  ZodTypeAny,
-} from 'zod'
+import { z, ZodFirstPartyTypeKind, ZodTypeAny } from 'zod'
 import { OpenAPIV3 } from 'openapi-types'
 import { OperationMeta, allowedOperationKeys } from './meta'
-import { RootConfig, Router, RouterDef } from '@trpc/server'
+import type {
+  TRPCRootConfig,
+  TRPCRouterDef,
+  AnyTRPCRouter,
+} from '@trpc/server'
 
 /**
  * @public
  */
-export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
+export function generateOpenAPIDocumentFromTRPCRouter<R extends AnyTRPCRouter>(
   inRouter: R,
   options: GenerateOpenAPIDocumentOptions<MetaOf<R>> = {},
 ) {
-  const router: DummyRouter = inRouter as unknown as DummyRouter
+  const router = inRouter as unknown as InternalRouter
   const procs = router._def.procedures
   const paths: OpenAPIV3.PathsObject = {}
   const processOperation = (
@@ -29,16 +25,16 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
     return options.processOperation?.(op, meta) || op
   }
   for (const [procName, proc] of Object.entries(procs)) {
-    const procDef = proc._def as unknown as DummyProcedure
+    const procDef = proc._def as InternalProcedureDef
 
     // ZodArrays are also correct, as .splice(1) will return an empty array
     // it's ok just to return the array itself
     const input =
       getZodTypeName(procDef.inputs[0]) === ZodFirstPartyTypeKind.ZodArray
-        ? (procDef.inputs[0] as ZodArray<ZodTypeAny>)
+        ? (procDef.inputs[0] as ZodTypeAny)
         : procDef.inputs
             .slice(1)
-            .reduce<AnyZodObject>(
+            .reduce<any>(
               (acc, cur) => asZodObject(acc).merge(asZodObject(cur)),
               asZodObject(procDef.inputs[0] || z.object({})),
             )
@@ -58,9 +54,13 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
       ...(options.pathPrefix || '/').split('/').filter(Boolean),
       procName,
     ].join('/')
+    const outputDescription =
+      output && typeof (asZodType(output) as any).description === 'string'
+        ? ((asZodType(output) as any).description as string)
+        : ''
     const responses = {
       200: {
-        description: (output && asZodType(output).description) || '',
+        description: outputDescription,
         ...(outputSchema
           ? {
               content: {
@@ -71,7 +71,7 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
             }
           : {}),
       },
-    }
+    } as const satisfies OpenAPIV3.ResponsesObject
     const operationInfo: Partial<OpenAPIV3.OperationObject> = {
       tags: procName.split('.').slice(0, -1).slice(0, 1),
     }
@@ -81,7 +81,7 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
         operationInfo[key] = value as any
       }
     }
-    if (procDef.query) {
+    if (procDef.type === 'query') {
       paths[key] = {
         get: processOperation(
           {
@@ -138,22 +138,24 @@ function getZodTypeName(input: unknown) {
   return (input as { _def?: { typeName?: string } } | undefined)?._def?.typeName
 }
 
-function asZodObject(input: unknown) {
+function asZodObject(input: unknown): any {
+  const typeName = getZodTypeName(input)
   if (
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodObject &&
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodVoid &&
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodOptional
+    typeName !== ZodFirstPartyTypeKind.ZodObject &&
+    typeName !== ZodFirstPartyTypeKind.ZodVoid &&
+    typeName !== ZodFirstPartyTypeKind.ZodOptional
   ) {
     throw new Error('Expected a ZodObject, received: ' + String(input))
   }
-  return input as AnyZodObject
+  return input as any
 }
 
-function asZodType(input: unknown) {
-  if (!getZodTypeName(input)) {
+function asZodType(input: unknown): ZodTypeAny {
+  const maybe = input as ZodTypeAny
+  if (!maybe || typeof (maybe as any).parse !== 'function') {
     throw new Error('Expected a Zod schema, received: ' + String(input))
   }
-  return input as ZodType
+  return maybe
 }
 
 /**
@@ -167,13 +169,27 @@ export interface GenerateOpenAPIDocumentOptions<M extends OperationMeta> {
   ) => OpenAPIV3.OperationObject | void
 }
 
-function toJsonSchema(input: ZodType) {
+function toJsonSchema(input: ZodTypeAny) {
   const { $schema, ...output } = zodToJsonSchema(input)
   return output
 }
 
-type MetaOf<R extends Router<any>> = R extends Router<RouterDef<infer D, any>>
-  ? D extends RootConfig<infer C>
-    ? C['meta']
-    : never
-  : never
+type MetaOf<R extends AnyTRPCRouter> = R['_def']['_config']['$types']['meta']
+
+// tRPC v11 compatibility types (re-exported names)
+type Router<TRoot> = AnyTRPCRouter & { _def: TRPCRouterDef<TRoot, any> }
+type RootConfig<T> = TRPCRootConfig<T>
+type RouterDef<TRoot, TRecord> = TRPCRouterDef<TRoot, TRecord>
+
+// Internal shapes we rely on at runtime
+type InternalProcedureDef = {
+  type: 'query' | 'mutation' | 'subscription'
+  inputs: unknown[]
+  output?: unknown
+  meta?: Record<string, unknown>
+}
+type InternalRouter = {
+  _def: {
+    procedures: Record<string, { _def: InternalProcedureDef }>
+  }
+}
