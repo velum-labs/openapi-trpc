@@ -17,6 +17,3 @@ export const createDummyRouter = (
 }
 
 export type DummyRouter = ReturnType<typeof createDummyRouter>
-export type DummyProcedure = ReturnType<
-  typeof createDummyRouter
->['_def']['procedures']['hello']['_def']['procedures']['world']['_def']
