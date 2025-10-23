@@ -33,6 +33,7 @@
     "prettier": "2.7.1",
     "swagger-ui-dist": "^4.15.5",
     "typescript": "5.6.3",
+    "vitest": "^2.1.8",
     "zod": "4.0.14"
   },
   "peerDependencies": {
@@ -42,6 +43,8 @@
   "scripts": {
     "build": "heft build",
     "test": "heft test",
+    "test:vitest": "vitest run",
+    "test:vitest:watch": "vitest",
     "prepare": "heft build && ./scripts/generate-api-docs",
     "release": "./scripts/release",
     "format": "prettier --write .",

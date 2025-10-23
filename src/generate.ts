@@ -88,7 +88,7 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends AnyRouter>(
         operationInfo[key] = value as any
       }
     }
-    if (procDef.query) {
+    if (procDef.type === 'query') {
       paths[key] = {
         get: processOperation(
           {
