@@ -1,26 +1,32 @@
 import { zodToJsonSchema } from 'zod-to-json-schema'
 import { DummyProcedure, DummyRouter } from './dummyRouter'
-import {
-  z,
-  AnyZodObject,
-  ZodType,
-  ZodFirstPartyTypeKind,
-  ZodArray,
-  ZodTypeAny,
-} from 'zod'
+import { z, ZodType, ZodArray, ZodTypeAny, ZodObject } from 'zod'
+import type { ZodRawShape } from 'zod'
 import { OpenAPIV3 } from 'openapi-types'
 import { OperationMeta, allowedOperationKeys } from './meta'
-import { RootConfig, Router, RouterDef } from '@trpc/server'
+import type {
+  TRPCRootConfig as RootConfig,
+  AnyRouter,
+  TRPCRouterDef as RouterDef,
+} from '@trpc/server'
+
+// Type name constants for compatibility with both Zod 3 and Zod 4
+const ZodTypeNames = {
+  ZodArray: 'ZodArray',
+  ZodObject: 'ZodObject',
+  ZodVoid: 'ZodVoid',
+  ZodOptional: 'ZodOptional',
+} as const
 
 /**
  * @public
  */
-export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
+export function generateOpenAPIDocumentFromTRPCRouter<R extends AnyRouter>(
   inRouter: R,
   options: GenerateOpenAPIDocumentOptions<MetaOf<R>> = {},
 ) {
   const router: DummyRouter = inRouter as unknown as DummyRouter
-  const procs = router._def.procedures
+  const procs = (router as any)._def.procedures as Record<string, any>
   const paths: OpenAPIV3.PathsObject = {}
   const processOperation = (
     op: OpenAPIV3.OperationObject,
@@ -29,17 +35,18 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
     return options.processOperation?.(op, meta) || op
   }
   for (const [procName, proc] of Object.entries(procs)) {
-    const procDef = proc._def as unknown as DummyProcedure
+    const procDef = proc._def as any
 
     // ZodArrays are also correct, as .splice(1) will return an empty array
     // it's ok just to return the array itself
     const input =
-      getZodTypeName(procDef.inputs[0]) === ZodFirstPartyTypeKind.ZodArray
+      getZodTypeName(procDef.inputs[0]) === ZodTypeNames.ZodArray
         ? (procDef.inputs[0] as ZodArray<ZodTypeAny>)
-        : procDef.inputs
+        : (procDef.inputs as any[])
             .slice(1)
-            .reduce<AnyZodObject>(
-              (acc, cur) => asZodObject(acc).merge(asZodObject(cur)),
+            .reduce(
+              (acc: ZodObject<ZodRawShape>, cur: any) =>
+                asZodObject(acc).merge(asZodObject(cur)),
               asZodObject(procDef.inputs[0] || z.object({})),
             )
     const output = procDef.output
@@ -81,7 +88,7 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
         operationInfo[key] = value as any
       }
     }
-    if (procDef.query) {
+    if (procDef.type === 'query') {
       paths[key] = {
         get: processOperation(
           {
@@ -134,19 +141,37 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends Router<any>>(
   return api
 }
 
-function getZodTypeName(input: unknown) {
-  return (input as { _def?: { typeName?: string } } | undefined)?._def?.typeName
+function getZodTypeName(input: unknown): string | undefined {
+  const schema = input as { _def?: { typeName?: string; type?: string }; def?: { type?: string } } | undefined
+  // Zod 3 uses _def.typeName (e.g., "ZodObject")
+  // Zod 4 uses _def.type or def.type (e.g., "object")
+  const typeName = schema?._def?.typeName || schema?._def?.type || schema?.def?.type
+
+  // Normalize to Zod 3 format for consistency
+  if (typeName && !typeName.startsWith('Zod')) {
+    return 'Zod' + typeName.charAt(0).toUpperCase() + typeName.slice(1)
+  }
+  return typeName
 }
 
 function asZodObject(input: unknown) {
+  const typeName = getZodTypeName(input)
   if (
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodObject &&
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodVoid &&
-    getZodTypeName(input) !== ZodFirstPartyTypeKind.ZodOptional
+    typeName !== ZodTypeNames.ZodObject &&
+    typeName !== ZodTypeNames.ZodVoid &&
+    typeName !== ZodTypeNames.ZodOptional
   ) {
-    throw new Error('Expected a ZodObject, received: ' + String(input))
+    throw new Error(
+      `Expected a ZodObject, ZodVoid, or ZodOptional, but got typeName: ${typeName}. Input: ${JSON.stringify({
+        hasZDef: !!(input as any)?._def,
+        hasDef: !!(input as any)?.def,
+        zDefType: (input as any)?._def?.type,
+        defType: (input as any)?.def?.type,
+        zDefTypeName: (input as any)?._def?.typeName,
+      })}`,
+    )
   }
-  return input as AnyZodObject
+  return input as ZodObject<ZodRawShape>
 }
 
 function asZodType(input: unknown) {
@@ -167,13 +192,35 @@ export interface GenerateOpenAPIDocumentOptions<M extends OperationMeta> {
   ) => OpenAPIV3.OperationObject | void
 }
 
+/**
+ * Convert a Zod schema to JSON Schema, with compatibility for both Zod 3 and Zod 4
+ */
 function toJsonSchema(input: ZodType) {
-  const { $schema, ...output } = zodToJsonSchema(input)
-  return output
+  // Zod 4 has built-in JSON Schema support via z.toJSONSchema
+  // Check if it's available and use it, otherwise fall back to zod-to-json-schema (for Zod 3)
+  if (typeof (z as any).toJSONSchema === 'function') {
+    // Zod 4 - use built-in JSON Schema conversion
+    try {
+      const result = (z as any).toJSONSchema(input)
+      // Remove $schema property if present for consistency
+      const { $schema, ...output } = result
+      return output
+    } catch (error) {
+      // If Zod 4's toJSONSchema fails, fall back to zod-to-json-schema
+      const { $schema, ...output } = zodToJsonSchema(input)
+      return output
+    }
+  } else {
+    // Zod 3 - use zod-to-json-schema
+    const { $schema, ...output} = zodToJsonSchema(input)
+    return output
+  }
 }
 
-type MetaOf<R extends Router<any>> = R extends Router<RouterDef<infer D, any>>
-  ? D extends RootConfig<infer C>
-    ? C['meta']
+type MetaOf<R extends AnyRouter> = R extends AnyRouter
+  ? R extends { _def: RouterDef<infer RC, any> }
+    ? RC extends RootConfig<infer C>
+      ? C['meta']
+      : never
     : never
   : never
