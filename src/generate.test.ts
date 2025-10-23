@@ -66,7 +66,7 @@ it('lets you post-process each operation, giving typed access to the meta', () =
   })
   const doc = generateOpenAPIDocumentFromTRPCRouter(router, {
     pathPrefix: '/trpc',
-    processOperation: (op, meta) => {
+    processOperation: (op, meta: any) => {
       if (meta?.requiresAuth) {
         op.security = [{ bearerAuth: [] }]
       }
