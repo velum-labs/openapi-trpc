@@ -1,16 +1,17 @@
 {
   "name": "openapi-trpc",
   "version": "0.2.1",
+  "type": "module",
   "files": [
     "src",
-    "lib",
-    "lib-commonjs",
     "dist"
   ],
-  "main": "./lib-commonjs/index.js",
-  "module": "./lib/index.js",
-  "types": "./dist/openapi-trpc.d.ts",
-  "docModel": "./dist/openapi-trpc.api.json",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dtinth/openapi-trpc.git"
@@ -23,13 +24,9 @@
     "@changesets/cli": "2.25.0",
     "@fastify/static": "^6.9.0",
     "@playwright/test": "^1.30.0",
-    "@rushstack/heft": "^1.1.2",
-    "@rushstack/heft-web-rig": "^0.19.0",
     "@trpc/server": "11.4.3",
-    "@types/heft-jest": "1.0.3",
     "@types/node": "^18.13.0",
     "fastify": "^4.13.0",
-    "npm-run-all": "^4.1.5",
     "prettier": "2.7.1",
     "swagger-ui-dist": "^4.15.5",
     "typescript": "~5.0.0",
@@ -41,10 +38,9 @@
     "zod": "^3.20.6 || ^4.0.0"
   },
   "scripts": {
-    "build": "heft build",
-    "test": "heft test",
-    "test:vitest": "vitest run",
-    "test:vitest:watch": "vitest",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write .",
     "api": "./scripts/generate-api-docs"
   },
