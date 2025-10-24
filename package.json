@@ -45,8 +45,6 @@
     "test": "heft test",
     "test:vitest": "vitest run",
     "test:vitest:watch": "vitest",
-    "prepare": "heft build && ./scripts/generate-api-docs",
-    "release": "./scripts/release",
     "format": "prettier --write .",
     "api": "./scripts/generate-api-docs"
   },
