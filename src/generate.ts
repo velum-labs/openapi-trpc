@@ -1,5 +1,4 @@
 import { zodToJsonSchema } from 'zod-to-json-schema'
-import { DummyProcedure, DummyRouter } from './dummyRouter'
 import { z, ZodType, ZodArray, ZodTypeAny, ZodObject } from 'zod'
 import type { ZodRawShape } from 'zod'
 import { OpenAPIV3 } from 'openapi-types'
@@ -25,8 +24,7 @@ export function generateOpenAPIDocumentFromTRPCRouter<R extends AnyRouter>(
   inRouter: R,
   options: GenerateOpenAPIDocumentOptions<MetaOf<R>> = {},
 ) {
-  const router: DummyRouter = inRouter as unknown as DummyRouter
-  const procs = (router as any)._def.procedures as Record<string, any>
+  const procs = (inRouter as any)._def.procedures as Record<string, any>
   const paths: OpenAPIV3.PathsObject = {}
   const processOperation = (
     op: OpenAPIV3.OperationObject,

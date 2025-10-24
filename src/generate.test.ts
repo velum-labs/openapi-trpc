@@ -1,7 +1,6 @@
 import { initTRPC } from '@trpc/server'
 import fs from 'fs'
 import { z } from 'zod'
-import { createDummyRouter } from './dummyRouter'
 import { generateOpenAPIDocumentFromTRPCRouter } from './generate'
 import { OperationMeta } from './meta'
 
@@ -27,7 +26,6 @@ it('works', () => {
         .output(z.array(z.object({ id: z.string() })))
         .query(() => []),
     }),
-    dummy: createDummyRouter(t),
   })
   const doc = generateOpenAPIDocumentFromTRPCRouter(router, {
     pathPrefix: '/trpc',
@@ -45,7 +43,6 @@ it('works with array', () => {
         .input(z.array(z.string()))
         .query(() => null),
     }),
-    dummy: createDummyRouter(t),
   })
   const doc = generateOpenAPIDocumentFromTRPCRouter(router, {
     pathPrefix: '/trpc',
@@ -94,7 +91,6 @@ it('works with optional zod object', () => {
         )
         .query(() => null),
     }),
-    dummy: createDummyRouter(t),
   })
   const doc = generateOpenAPIDocumentFromTRPCRouter(router, {
     pathPrefix: '/trpc',
