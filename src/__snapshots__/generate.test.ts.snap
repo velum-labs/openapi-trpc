@@ -77,67 +77,6 @@ Object {
   },
   "openapi": "3.0.0",
   "paths": Object {
-    "/trpc/dummy.hello.world": Object {
-      "get": Object {
-        "description": "ok",
-        "operationId": "dummy.hello.world",
-        "parameters": Array [
-          Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "name": Object {
-                      "type": "string",
-                    },
-                  },
-                  "required": Array [
-                    "name",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "in": "query",
-            "name": "input",
-          },
-        ],
-        "responses": Object {
-          "200": Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "result": Object {
-                      "additionalProperties": false,
-                      "properties": Object {
-                        "data": Object {
-                          "type": "string",
-                        },
-                      },
-                      "required": Array [
-                        "data",
-                      ],
-                      "type": "object",
-                    },
-                  },
-                  "required": Array [
-                    "result",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "",
-          },
-        },
-        "tags": Array [
-          "dummy",
-        ],
-      },
-    },
     "/trpc/example.createGreeting": Object {
       "post": Object {
         "operationId": "example.createGreeting",
@@ -307,67 +246,6 @@ Object {
   },
   "openapi": "3.0.0",
   "paths": Object {
-    "/trpc/dummy.hello.world": Object {
-      "get": Object {
-        "description": "ok",
-        "operationId": "dummy.hello.world",
-        "parameters": Array [
-          Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "name": Object {
-                      "type": "string",
-                    },
-                  },
-                  "required": Array [
-                    "name",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "in": "query",
-            "name": "input",
-          },
-        ],
-        "responses": Object {
-          "200": Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "result": Object {
-                      "additionalProperties": false,
-                      "properties": Object {
-                        "data": Object {
-                          "type": "string",
-                        },
-                      },
-                      "required": Array [
-                        "data",
-                      ],
-                      "type": "object",
-                    },
-                  },
-                  "required": Array [
-                    "result",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "",
-          },
-        },
-        "tags": Array [
-          "dummy",
-        ],
-      },
-    },
     "/trpc/exampleWithArrayAsInput.queryWithArrayInput": Object {
       "get": Object {
         "operationId": "exampleWithArrayAsInput.queryWithArrayInput",
@@ -409,67 +287,6 @@ Object {
   },
   "openapi": "3.0.0",
   "paths": Object {
-    "/trpc/dummy.hello.world": Object {
-      "get": Object {
-        "description": "ok",
-        "operationId": "dummy.hello.world",
-        "parameters": Array [
-          Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "name": Object {
-                      "type": "string",
-                    },
-                  },
-                  "required": Array [
-                    "name",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "in": "query",
-            "name": "input",
-          },
-        ],
-        "responses": Object {
-          "200": Object {
-            "content": Object {
-              "application/json": Object {
-                "schema": Object {
-                  "additionalProperties": false,
-                  "properties": Object {
-                    "result": Object {
-                      "additionalProperties": false,
-                      "properties": Object {
-                        "data": Object {
-                          "type": "string",
-                        },
-                      },
-                      "required": Array [
-                        "data",
-                      ],
-                      "type": "object",
-                    },
-                  },
-                  "required": Array [
-                    "result",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "",
-          },
-        },
-        "tags": Array [
-          "dummy",
-        ],
-      },
-    },
     "/trpc/example.optionalObjectTest": Object {
       "get": Object {
         "operationId": "example.optionalObjectTest",
@@ -478,23 +295,16 @@ Object {
             "content": Object {
               "application/json": Object {
                 "schema": Object {
-                  "anyOf": Array [
-                    Object {
-                      "not": Object {},
+                  "additionalProperties": false,
+                  "properties": Object {
+                    "anOption": Object {
+                      "type": "string",
                     },
-                    Object {
-                      "additionalProperties": false,
-                      "properties": Object {
-                        "anOption": Object {
-                          "type": "string",
-                        },
-                      },
-                      "required": Array [
-                        "anOption",
-                      ],
-                      "type": "object",
-                    },
+                  },
+                  "required": Array [
+                    "anOption",
                   ],
+                  "type": "object",
                 },
               },
             },
